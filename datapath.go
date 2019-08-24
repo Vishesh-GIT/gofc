@@ -44,6 +44,7 @@ func (dp *Datapath) sendLoop() {
 	}
 }
 
+/*
 func (dp *Datapath) recvLoop() {
 	buf := make([]byte, 1024*256)
 	for {
@@ -67,6 +68,50 @@ func (dp *Datapath) recvLoop() {
 			i += (int)(msgLen)
 		}
 	}
+}
+*/
+func (dp *Datapath) recvLoop() {
+    buf := make([]byte, 1024*256)
+    for {
+        // read
+        size, err := dp.conn.Read(buf)
+        if err != nil {
+            fmt.Println("failed to read conn")
+            fmt.Println(err)
+            return
+        }
+
+        // tmp := make([]byte, 2048)
+        for i := 0; i < size; {
+            // fmt.Printf("\n buffer staring 20 bytes %v \n", buf[i:])
+            msgLen := binary.BigEndian.Uint16(buf[i+2:])
+            if msgLen < 1 {
+                break
+            } else if i+(int)(msgLen) > size {
+                fmt.Printf("msgLen %d+%d is exceeding size %d\n", i, msgLen, size)
+                tempBuf := make([]byte, 1024*256)
+                for {
+                    tempSize, err := dp.conn.Read(tempBuf)
+                    if err != nil {
+                        fmt.Println("failed to read conn")
+                        fmt.Println(err)
+                        return
+                    }
+                    newBuf := buf[:size]
+                    newBuf = append(newBuf, tempBuf...)
+                    _ = copy(buf, newBuf)
+                    size = size + tempSize
+                    remainingMsgLen := i+(int)(msgLen) - size
+		    fmt.Printf("remainingMsgLen %d\n", remainingMsgLen)
+                    if remainingMsgLen < 0 {
+                        break
+                    }
+                }
+            }
+            dp.handlePacket(buf[i : i+(int)(msgLen)])
+            i += (int)(msgLen)
+        }
+    }
 }
 
 func (dp *Datapath) handlePacket(buf []byte) {
