@@ -57,9 +57,10 @@ func (dp *Datapath) recvLoop() {
 
 		// tmp := make([]byte, 2048)
 		for i := 0; i < size; {
+			fmt.Println("buffer staring 20 bytes %v", buf[i:i+10]
 			msgLen := binary.BigEndian.Uint16(buf[i+2:])
 			if msgLen < 1 || i+(int)(msgLen) > size {
-				fmt.Println("msgLen is 0 or exceeding size")
+				fmt.Println("msgLen is 0 or exceeding size %d:%d", i, msgLen)
 				break
 			}
 			dp.handlePacket(buf[i : i+(int)(msgLen)])
