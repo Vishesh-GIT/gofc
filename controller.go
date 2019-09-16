@@ -16,6 +16,10 @@ type OFController struct {
 	echoInterval int32 // echo interval
 }
 
+type ConnCloseHandler interface {
+	HandleConnClose()
+}
+
 func NewOFController() *OFController {
 	ofc := new(OFController)
 	ofc.echoInterval = 60
@@ -48,6 +52,10 @@ func (c *OFController) ConnectionUp() {
 
 func (c *OFController) ConnectionDown() {
 	// handle connection down
+}
+
+func (c *OFController) HandleConnClose() {
+	fmt.Println("Connection closed")
 }
 
 func (c *OFController) sendEchoLoop() {
